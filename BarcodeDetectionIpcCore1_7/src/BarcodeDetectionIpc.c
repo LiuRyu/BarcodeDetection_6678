@@ -745,8 +745,8 @@ void BarcodeDetect_ipcSlaveProc3(barcode_detect_proc_info_t * proc_info)
 			accModuleW = 0.0;
 			for(k = 0; k < sliceCnt; k++) {
 				codeType = isLearn ? 0 : setType;
-				codeDigit = isLearn ? 0 : setDigit;
-				codeValid = isLearn ? 0 : setValid;
+				codeDigit = setDigit;
+				codeValid = setValid;
 				memset(code_result, 0, sizeof(char) * CODE_RESULT_ARR_LENGTH);
 				codeModule = codeDirect = codeOffsetL = codeOffsetR = 0;
 				nDecodeFlag = BarcodeDecoding_run(ucBarcodeImage, (int *)ucDecodeImage,

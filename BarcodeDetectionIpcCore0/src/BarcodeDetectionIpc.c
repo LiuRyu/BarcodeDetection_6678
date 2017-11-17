@@ -19,7 +19,7 @@
 /************************************************************************/
 IHeap_Handle gHeapID = 0;
 
-char * gFileVersion = "2.6.0.2_yunda";
+char * gFileVersion = "2.6.1";
 int gnBarcodeDetectRetVal = 0;			// 全局返回值
 
 int gnIsBarcodeDetectInit = 0;
@@ -49,6 +49,7 @@ int gnIsLearnSymbol = 0;
 int gnCodeSymbology = 0;
 int gnRglCodeCnt = 0;
 int gnCodeDgtNum = 0;
+int gnCodeDgtNumExt = 0;
 int gnCodeValidity = 0;
 int gnCodeValidityExt = 0;
 int gnMultiPkgDetect = 0;
@@ -69,7 +70,9 @@ int BarcodeDetect_init_ipcMasterProc0(IHeap_Handle heap_id, int img_max_wid, int
 
 	platform_write("\nImage-processing C Runtime Library loading... \n");
 
-	gnCodeSymbology = gnRglCodeCnt = 0;
+	gnIsLearnSymbol = gnCodeSymbology = gnRglCodeCnt = 0;
+	gnCodeDgtNum = gnCodeDgtNumExt = gnCodeValidity = gnCodeValidityExt = 0;
+	gnMultiPkgDetect = 0;
 	gnBarcodeDetectInitImgWid = img_max_wid;
 	gnBarcodeDetectInitImgHei = img_max_hei;
 
@@ -235,6 +238,10 @@ void BarcodeDetect_release()
 	int i = 0;
 
 	gnIsBarcodeDetectInit = 0;
+
+	gnIsLearnSymbol = gnCodeSymbology = gnRglCodeCnt = 0;
+	gnCodeDgtNum = gnCodeDgtNumExt = gnCodeValidity = gnCodeValidityExt = 0;
+	gnMultiPkgDetect = 0;
 
 	if(gBarcodeDetectResults) {
 		Memory_free(gHeapID, gBarcodeDetectResults,
@@ -475,12 +482,7 @@ int BarcodeDetect_setparams(AlgorithmParamSet * paramset)
 //	}
 
 	gnCodeDgtNum = paramset->nCodeDgtNum;
-//	if(gnCodeDgtNum < 0) {
-//		gnCodeDgtNum = 0;	// 还原初始值
-//		ret_val = -10112016;
-//		printf("\n--Ryu--Invalid input parameters in Algorithm Setparams operation, %d\n", ret_val);
-//		goto nExit;
-//	}
+	gnCodeDgtNumExt = paramset->nCodeDgtNumExt;
 
 	gnCodeValidity = paramset->nCodeValidity;
 	gnCodeValidityExt = paramset->nCodeValidityExt;
@@ -507,10 +509,10 @@ int BarcodeDetect_getparams(AlgorithmParamSet * paramset)
 	paramset->nCodeCount = gnRglCodeCnt;
 	paramset->nCodeSymbology = gnCodeSymbology;
 	paramset->nCodeDgtNum = gnCodeDgtNum;
+	paramset->nCodeDgtNum = gnCodeDgtNumExt;
 	paramset->nCodeValidity = gnCodeValidity;
 	paramset->nCodeValidityExt = gnCodeValidityExt;
 	paramset->nMultiPkgDetect = gnMultiPkgDetect;
-	paramset->reserve4 = 0;
 
 	ret_val = 9;
 
@@ -542,17 +544,6 @@ int BarcodeDetect_run_ipcMasterProc0(int lrning_flag, unsigned char * img_data, 
 		printf("\n---Ryu--- Algorithm runs without initialization, DO Init before run it, %d\n", ret_val);
 		return ret_val;
 	}
-
-	// XXX
-	AlgorithmParamSet params;
-	params.nFlag = 1;
-	params.nCodeCount = 0;
-	params.nMultiPkgDetect = gnMultiPkgDetect;
-	params.nCodeSymbology = (1<<0) | (1<<1);
-	params.nCodeDgtNum = (24<<16) | (18<<8) | 13;
-	params.nCodeValidity = 1;
-	params.nCodeValidityExt = 0;
-	BarcodeDetect_setparams(&params);
 
 	for(i = 1; i < NCORENUM; i++) {
 		gBarcodeDetectProcInfo[i]->nFlag = 0;

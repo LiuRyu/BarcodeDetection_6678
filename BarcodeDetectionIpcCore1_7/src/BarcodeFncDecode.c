@@ -1481,13 +1481,15 @@ int BarcodeDigitNumCheck(char * strCode, int cntCodeChar, int setDigit)
 		goto nExit;
 	}
 
-	for( i = 0; i < 4; i++ ) {
-		digit = (setDigit>>(i*8)) & 0xff;
-		if(digit == cntCodeChar) {
-			nRet = 1;
-			break;
-		}
+	if(0 >= cntCodeChar || 32 < cntCodeChar) {
+		nRet = 0;
+		goto nExit;
 	}
+
+	if((1 << (cntCodeChar-1)) & setDigit)
+		nRet = 1;
+	else
+		nRet = 0;
 
 nExit:
 	return nRet;
